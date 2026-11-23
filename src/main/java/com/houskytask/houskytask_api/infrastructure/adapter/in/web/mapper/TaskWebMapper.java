@@ -7,12 +7,15 @@ import com.houskytask.houskytask_api.infrastructure.adapter.in.web.dto.TaskReque
 import com.houskytask.houskytask_api.infrastructure.adapter.in.web.dto.TaskResponseDTO;
 import org.springframework.stereotype.Component;
 
+import java.util.Locale;
+
 @Component
 public class TaskWebMapper {
 
     public Task toDomain(TaskRequestDTO dto) {
         if (dto == null) return null;
         return Task.builder()
+                .userId(dto.getUserId())
                 .title(dto.getTitle())
                 .description(dto.getDescription())
                 .dueDate(dto.getDueDate())
@@ -27,6 +30,7 @@ public class TaskWebMapper {
         if (task == null) return null;
         return TaskResponseDTO.builder()
                 .id(task.getId())
+                .userId(task.getUserId())
                 .title(task.getTitle())
                 .description(task.getDescription())
                 .dueDate(task.getDueDate())
@@ -39,7 +43,16 @@ public class TaskWebMapper {
 
     private TaskStatus parseStatus(String status) {
         if (status == null || status.isBlank()) return null;
-        return TaskStatus.valueOf(status.trim().toUpperCase().replace("-", "_"));
+        String value = status.trim().toUpperCase(Locale.ROOT)
+                .replace('-', '_')
+                .replace(' ', '_');
+
+        return switch (value) {
+            case "PENDIENTE", "PENDING" -> TaskStatus.PENDIENTE;
+            case "EN_CURSO", "IN_PROGRESS", "INPROGRESS", "PROGRESS" -> TaskStatus.EN_CURSO;
+            case "COMPLETADA", "COMPLETED", "DONE" -> TaskStatus.COMPLETADA;
+            default -> throw new IllegalArgumentException("Estado de tarea no válido: " + status);
+        };
     }
 
     private String formatStatus(TaskStatus status) {
@@ -49,6 +62,13 @@ public class TaskWebMapper {
 
     private TaskPriority parsePriority(String priority) {
         if (priority == null || priority.isBlank()) return null;
-        return TaskPriority.valueOf(priority.trim().toUpperCase());
+        String value = priority.trim().toUpperCase(Locale.ROOT);
+
+        return switch (value) {
+            case "BAJA", "LOW" -> TaskPriority.BAJA;
+            case "MEDIA", "MEDIUM", "MED" -> TaskPriority.MEDIA;
+            case "ALTA", "HIGH" -> TaskPriority.ALTA;
+            default -> throw new IllegalArgumentException("Prioridad de tarea no válida: " + priority);
+        };
     }
 }

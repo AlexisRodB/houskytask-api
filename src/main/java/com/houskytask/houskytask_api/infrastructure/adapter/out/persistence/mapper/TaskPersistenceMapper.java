@@ -2,15 +2,17 @@ package com.houskytask.houskytask_api.infrastructure.adapter.out.persistence.map
 
 import com.houskytask.houskytask_api.domain.model.Task;
 import com.houskytask.houskytask_api.infrastructure.adapter.out.persistence.entity.TaskJpaEntity;
+import com.houskytask.houskytask_api.infrastructure.adapter.out.persistence.entity.UserJpaEntity;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TaskPersistenceMapper {
 
-    public TaskJpaEntity toEntity(Task task) {
+    public TaskJpaEntity toEntity(Task task, UserJpaEntity user) {
         if (task == null) return null;
         return TaskJpaEntity.builder()
                 .id(task.getId())
+                .user(user)
                 .title(task.getTitle())
                 .description(task.getDescription())
                 .dueDate(task.getDueDate())
@@ -25,6 +27,7 @@ public class TaskPersistenceMapper {
         if (entity == null) return null;
         return Task.builder()
                 .id(entity.getId())
+                .userId(entity.getUser().getId())
                 .title(entity.getTitle())
                 .description(entity.getDescription())
                 .dueDate(entity.getDueDate())

@@ -7,9 +7,11 @@ import com.houskytask.houskytask_api.domain.port.in.DeleteTaskUseCase;
 import com.houskytask.houskytask_api.domain.port.in.GetTasksUseCase;
 import com.houskytask.houskytask_api.domain.port.in.UpdateTaskUseCase;
 import com.houskytask.houskytask_api.domain.port.out.TaskRepositoryPort;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class TaskService implements CreateTaskUseCase, GetTasksUseCase, UpdateTaskUseCase, DeleteTaskUseCase {
 
     private final TaskRepositoryPort taskRepositoryPort;
@@ -25,8 +27,11 @@ public class TaskService implements CreateTaskUseCase, GetTasksUseCase, UpdateTa
     }
 
     @Override
-    public List<Task> getAllTasks() {
-        return taskRepositoryPort.findAll();
+    public List<Task> getAllTasksByUserId(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("El ID de usuario es obligatorio para consultar tareas.");
+        }
+        return taskRepositoryPort.findByUserId(userId);
     }
 
     @Override

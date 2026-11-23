@@ -6,6 +6,7 @@ import java.time.LocalTime;
 
 @Data
 public class TaskRequestDTO {
+    private Long userId;
     private String title;
     private String description;
     private LocalDate dueDate;
