@@ -3,9 +3,11 @@ package com.houskytask.houskytask_api.infrastructure.adapter.in.web.controller;
 import com.houskytask.houskytask_api.domain.model.User;
 import com.houskytask.houskytask_api.domain.port.in.AuthUseCase;
 import com.houskytask.houskytask_api.domain.port.in.GetUsersUseCase;
+import com.houskytask.houskytask_api.domain.port.in.OtpUseCase;
 import com.houskytask.houskytask_api.domain.port.in.UpdateUserProfileUseCase;
 import com.houskytask.houskytask_api.infrastructure.adapter.in.web.dto.LoginRequestDTO;
 import com.houskytask.houskytask_api.infrastructure.adapter.in.web.dto.RegisterRequestDTO;
+import com.houskytask.houskytask_api.infrastructure.adapter.in.web.dto.SendOtpRequestDTO;
 import com.houskytask.houskytask_api.infrastructure.adapter.in.web.dto.UpdateUserProfileRequestDTO;
 import com.houskytask.houskytask_api.infrastructure.adapter.in.web.dto.UserResponseDTO;
 import com.houskytask.houskytask_api.infrastructure.adapter.in.web.mapper.UserWebMapper;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -31,14 +34,21 @@ import java.util.List;
 public class AuthController {
 
     private final AuthUseCase authUseCase;
+    private final OtpUseCase otpUseCase;
     private final GetUsersUseCase getUsersUseCase;
     private final UpdateUserProfileUseCase updateUserProfileUseCase;
     private final JwtService jwtService;
     private final UserWebMapper userWebMapper;
 
+    @PostMapping("/auth/send-otp")
+    public ResponseEntity<Map<String, String>> sendOtp(@RequestBody SendOtpRequestDTO request) {
+        otpUseCase.sendOtp(request.getEmail());
+        return ResponseEntity.ok(Map.of("message", "Código enviado a tu correo."));
+    }
+
     @PostMapping("/auth/register")
     public ResponseEntity<UserResponseDTO> register(@RequestBody RegisterRequestDTO request) {
-        User created = authUseCase.register(userWebMapper.toDomain(request));
+        User created = authUseCase.register(userWebMapper.toDomain(request), request.getOtpCode());
         String token = jwtService.generateToken(created.getId(), created.getEmail());
 
         return ResponseEntity.status(HttpStatus.CREATED)

@@ -3,6 +3,7 @@ package com.houskytask.houskytask_api.application.service;
 import com.houskytask.houskytask_api.domain.model.User;
 import com.houskytask.houskytask_api.domain.port.in.AuthUseCase;
 import com.houskytask.houskytask_api.domain.port.in.GetUsersUseCase;
+import com.houskytask.houskytask_api.domain.port.in.OtpUseCase;
 import com.houskytask.houskytask_api.domain.port.in.UpdateUserProfileUseCase;
 import com.houskytask.houskytask_api.domain.port.out.UserRepositoryPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,10 +14,14 @@ public class AuthService implements AuthUseCase, GetUsersUseCase, UpdateUserProf
 
     private final UserRepositoryPort userRepositoryPort;
     private final PasswordEncoder passwordEncoder;
+    private final OtpUseCase otpUseCase;
 
-    public AuthService(UserRepositoryPort userRepositoryPort, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepositoryPort userRepositoryPort,
+                       PasswordEncoder passwordEncoder,
+                       OtpUseCase otpUseCase) {
         this.userRepositoryPort = userRepositoryPort;
         this.passwordEncoder = passwordEncoder;
+        this.otpUseCase = otpUseCase;
     }
 
     @Override
@@ -25,13 +30,15 @@ public class AuthService implements AuthUseCase, GetUsersUseCase, UpdateUserProf
     }
 
     @Override
-    public User register(User user) {
+    public User register(User user, String otpCode) {
         user.validate();
         user.setEmail(user.getEmail().trim().toLowerCase());
 
         if (userRepositoryPort.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("Este correo ya está registrado.");
         }
+
+        otpUseCase.verifyOtp(user.getEmail(), otpCode);
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepositoryPort.save(user);
